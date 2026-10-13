@@ -9,7 +9,8 @@ const PORT = Number(process.env.OPEN_BOT_PAGE_PORT ?? 4740);
 const PAGE_TOKEN = process.env.OPEN_BOT_PAGE_TOKEN ?? "";
 
 function authorized(req) {
-  if (!PAGE_TOKEN) return true;
+  // Fail-closed : sans token configuré, tout est refusé (sauf /healthz, géré avant).
+  if (!PAGE_TOKEN) return false;
   return req.headers.get("x-open-bot-page-token") === PAGE_TOKEN;
 }
 
@@ -77,9 +78,12 @@ function vaultWrite(slug, value) {
     child.on("error", (e) => resolve({ ok: false, message: String(e).slice(0, 120) }));
   });
 }
+function escHtml(v) {
+  return String(v).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+}
 function cbPage(msg, ok) {
   return new Response(
-    '<!doctype html><meta charset="utf-8"><body style="font-family:system-ui;background:#0f1117;color:#e6e8ef;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1 style="font-size:20px">' + (ok ? "Connexion réussie" : "Connexion échouée") + '</h1><p style="color:#8b90a0">' + msg + '</p><p><a style="color:#7c93f5" href="/">Retour à Connexions</a></p></div>',
+    '<!doctype html><meta charset="utf-8"><body style="font-family:system-ui;background:#0f1117;color:#e6e8ef;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1 style="font-size:20px">' + (ok ? "Connexion réussie" : "Connexion échouée") + '</h1><p style="color:#8b90a0">' + escHtml(msg) + '</p><p><a style="color:#7c93f5" href="/">Retour à Connexions</a></p></div>',
     { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 }
 async function handleCodeCallback(o, url, provider) {
