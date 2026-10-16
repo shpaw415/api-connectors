@@ -33,6 +33,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // ----- serveur : pid + mode (frozen si OPEN_BOT_PAGE_UI défini) + token de page.
 // Ces valeurs sont lues dans /proc/<pid>/environ et JAMAIS affichées. -----
 function pageProc(): { pid: number; token: string; frozen: boolean } {
+  if (process.env.PAGE_TOKEN) return { pid: 0, token: process.env.PAGE_TOKEN, frozen: false };
   const out = spawnSync("ob-plugin", ["page", PLUGIN_ID], { encoding: "utf8" });
   const pid = Number(out.stdout.match(/"pid":\s*(\d+)/)?.[1] ?? 0);
   if (pid <= 0) return { pid: 0, token: process.env.PAGE_TOKEN ?? "", frozen: false };
@@ -44,7 +45,10 @@ function pageProc(): { pid: number; token: string; frozen: boolean } {
     frozen: environ.some((l) => l.startsWith("OPEN_BOT_PAGE_UI=")),
   };
 }
-const { pid: SRV_PID, token: TOKEN, frozen: FROZEN } = pageProc();
+const { pid: SRV_PID, token: TOKEN, frozen: FROZEN_DETECTED } = pageProc();
+// FROZEN_PAGE=1 : harnais lancé contre un serveur de test figé hors install (le pid
+// ci-dessus ne le décrit pas) — le token passe alors par la variable PAGE_TOKEN.
+const FROZEN = process.env.FROZEN_PAGE === "1" ? true : FROZEN_DETECTED;
 console.log(`· serveur : pid=${SRV_PID} mode=${FROZEN ? "install figée (OPEN_BOT_PAGE_UI)" : "checkout (bun --hot)"}`);
 const H: Record<string, string> = TOKEN ? { "x-open-bot-page-token": TOKEN } : {};
 const authed = (p: string, init?: RequestInit) => fetch(BASE + p, { ...init, headers: { ...init?.headers, ...H } });
