@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connexions API</title>
+<script>
+(function () {
+  var q = "";
+  try { q = new URLSearchParams(location.search).get("theme") || ""; } catch (e) {}
+  if (q !== "light" && q !== "dark") {
+    try { q = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+    catch (e) { q = "light"; }
+  }
+  document.documentElement.setAttribute("data-theme", q);
+  try {
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+      var t = "";
+      try { t = new URLSearchParams(location.search).get("theme") || ""; } catch (err) {}
+      if (t !== "light" && t !== "dark") document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+    });
+  } catch (e) {}
+})();
+</script>
+<link rel="stylesheet" href="./styles.css">
+</head><body>
+<div class="wrap">
+<div class="top"><div><div class="eyebrow">Plugin api-connectors</div><h1>Connexions API</h1>
+<p class="sub">Clés dans le coffre d’open-bot, utilisées via <code>ob-plugin-api-connectors-call</code> — persistantes après mise à jour.</p></div>
+<div class="top-actions"><button onclick="refresh()">Actualiser</button></div></div>
+<div class="grid" id="grid"></div>
+<div class="settings" id="settings">
+<h2>Réglages</h2>
+<div class="row settings-grid">
+<label class="check"><input type="checkbox" id="st-enabled"> Plugin actif</label>
+<label class="check"><input type="checkbox" id="st-log"> Journaliser les appels</label>
+<label class="field">Timeout (ms) <input type="number" id="st-timeout" min="1000" max="120000"></label>
+<button class="primary" onclick="saveSettings()">Enregistrer les réglages</button>
+<span class="result" id="st-res"></span>
+</div>
+</div>
+</div>
+<div class="card" style="max-width:1100px;margin-top:16px">
+<h2>Connexion OAuth (bêta)</h2>
+<p class="desc">Alternative à la clé collée : le plugin obtient et rafraîchit les tokens lui-même. Le token OAuth a priorité sur la clé.</p>
+
+<div class="oauth-block"><b>GitHub — device flow</b>
+<div class="row" style="margin-top:8px;flex-wrap:wrap">
+<input id="gh-cid" placeholder="Client ID de ton OAuth App GitHub" autocomplete="off">
+<button onclick="oauthSaveCreds('gh-cid','github-client-id')">Enregistrer</button>
+<button class="primary" onclick="githubDevice()">Connecter avec GitHub</button>
+</div>
+<div class="result" id="gh-oauth-res"></div>
+<div id="gh-device" style="display:none;margin-top:8px" class="desc">Va sur <a href="https://github.com/login/device" target="_blank" rel="noreferrer">github.com/login/device</a> et entre : <b id="gh-usercode" style="font-size:16px;letter-spacing:2px"></b> — en attente…</div>
+</div>
+
+<div class="oauth-block" style="margin-top:14px"><b>Google — authorization code</b>
+<div class="row" style="margin-top:8px;flex-wrap:wrap">
+<input id="go-cid" placeholder="Client ID Google" autocomplete="off">
+<input id="go-secret" type="password" placeholder="Client Secret" autocomplete="off">
+<button onclick="oauthSaveCreds2('go-cid','google-client-id','go-secret','google-client-secret')">Enregistrer</button>
+</div>
+<div class="row" style="margin-top:8px;flex-wrap:wrap;align-items:center">
+<span class="desc" style="margin:0">Redirect URI à enregistrer dans Google Cloud :</span>
+<input id="go-redirect" readonly style="max-width:420px">
+<button onclick="copyField('go-redirect')">Copier</button>
+<input id="go-scope" placeholder="scopes (défaut: youtube+drive readonly)">
+<button class="primary" onclick="oauthConnect('google')">Connecter avec Google</button>
+<button onclick="oauthDisconnect('google')">Déconnecter</button>
+</div>
+<div class="result" id="go-oauth-res"></div>
+</div>
+
+<div class="oauth-block" style="margin-top:14px"><b>Slack — authorization code</b>
+<div class="row" style="margin-top:8px;flex-wrap:wrap">
+<input id="sl-cid" placeholder="Client ID Slack" autocomplete="off">
+<input id="sl-secret" type="password" placeholder="Client Secret" autocomplete="off">
+<button onclick="oauthSaveCreds2('sl-cid','slack-client-id','sl-secret','slack-client-secret')">Enregistrer</button>
+</div>
+<div class="row" style="margin-top:8px;flex-wrap:wrap;align-items:center">
+<span class="desc" style="margin:0">Redirect URI à enregistrer dans ton app Slack :</span>
+<input id="sl-redirect" readonly style="max-width:420px">
+<button onclick="copyField('sl-redirect')">Copier</button>
+<input id="sl-scope" placeholder="scopes bot (défaut: chat:write,channels:read,im:history)">
+<button class="primary" onclick="oauthConnect('slack')">Connecter avec Slack</button>
+<button onclick="oauthDisconnect('slack')">Déconnecter</button>
+</div>
+<div class="result" id="sl-oauth-res"></div>
+</div>
+</div>
+<script type="module" src="./app.ts"></script>
+</body></html>

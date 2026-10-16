@@ -2,7 +2,7 @@
   "$schema": "/home/agent/.config/opencode/skills/plugin/open-bot.plugin.schema.json",
   "id": "api-connectors",
   "name": "API Connectors",
-  "version": "beta-1",
+  "version": "beta-2",
   "description": "Connecte les comptes de l'utilisateur (GitHub, Google, Slack) et expose un client API unifié — page Connexions, clés au coffre — pour tous les plugins et agents open-bot.",
   "author": "shpaw415",
   "repo": "shpaw415/api-connectors",
@@ -68,9 +68,24 @@
       "exec": false
     },
     {
-      "name": "server.js",
-      "source": "files/server.js",
+      "name": "server.ts",
+      "source": "files/server.ts",
       "exec": true
+    },
+    {
+      "name": "index.html",
+      "source": "files/index.html",
+      "exec": false
+    },
+    {
+      "name": "app.ts",
+      "source": "files/app.ts",
+      "exec": false
+    },
+    {
+      "name": "styles.css",
+      "source": "files/styles.css",
+      "exec": false
     }
   ],
   "configs": [
@@ -97,7 +112,8 @@
   ],
   "dashboard": {
     "pages": {
-      "entry": "server.js"
+      "entry": "server.ts",
+      "ui": "files/index.html"
     },
     "tabs": [
       {
