@@ -30,21 +30,10 @@ const routes = process.env.OPEN_BOT_PAGE_UI
   : { "/": await import("./index.html").then((m) => m.default) };
 
 function authorized(req: Request) {
-  // Directive 2026-10-16 : sans token configuré (dev), pas d'authentification. Avec token :
-  // header x-open-bot-page-token obligatoire ; la valeur « dev-preview » (preview) n'est
-  // acceptée qu'en loopback.
-  if (!PAGE_TOKEN) return true;
-  const h = req.headers.get("x-open-bot-page-token") ?? "";
-  if (h === PAGE_TOKEN) return true;
-  if (h !== "dev-preview") return false;
-  try {
-    const ip = server.requestIP(req);
-    if (!ip) return false;
-    const a = ip.address.replace(/^::ffff:/, "");
-    return a === "127.0.0.1" || a === "::1";
-  } catch {
-    return false;
-  }
+  // Fail closed, including local development. A known preview literal must never
+  // bypass a real page token, even for requests originating on loopback.
+  if (!PAGE_TOKEN) return false;
+  return req.headers.get("x-open-bot-page-token") === PAGE_TOKEN;
 }
 
 // Enregistre ou vide une clé du coffre via `ob-plugin vault` (write-only, persistant
